@@ -1,0 +1,17 @@
+{
+    "name": "bradfeehan/rainmaker",
+    "description": "Feedback Loop (FBL) processor for Interspire Email Marketer",
+    "keywords": ["feedback loop", "FBL", "Interspire Email Marketer", "IEM"],
+    "homepage": "https://github.com/bradfeehan/rainmaker",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Brad Feehan",
+            "email": "git@bradfeehan.com",
+            "homepage": "https://github.com/bradfeehan"
+        }
+    ],
+    "require": {
+        "php": ">= 5.3"
+    }
+}
