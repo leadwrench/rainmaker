@@ -11,6 +11,9 @@
             "homepage": "https://github.com/bradfeehan"
         }
     ],
+    "autoload": {
+        "psr-0": { "BradFeehan\\Rainmaker\\": "lib/" }
+    },
     "require": {
         "php": ">= 5.3"
     },
