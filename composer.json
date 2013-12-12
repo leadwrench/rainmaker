@@ -15,7 +15,8 @@
         "psr-0": { "BradFeehan\\Rainmaker\\": "lib/" }
     },
     "require": {
-        "php": ">= 5.3"
+        "php": ">= 5.3",
+        "zendframework/zend-mail": "~2.2.5"
     },
     "require-dev": {
         "phpunit/phpunit": "~3.7.0"
