@@ -12,7 +12,10 @@
         }
     ],
     "autoload": {
-        "psr-0": { "BradFeehan\\Rainmaker\\": "lib/" }
+        "psr-0": {
+            "BradFeehan\\Rainmaker\\": "lib/",
+            "BradFeehan\\Rainmaker\\Test\\": "tests/"
+        }
     },
     "require": {
         "php": ">= 5.3",
