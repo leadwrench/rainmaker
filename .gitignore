@@ -2,3 +2,6 @@
 # http://getcomposer.org/doc/01-basic-usage.md#installing-dependencies
 /composer.lock
 /vendor/
+
+# Test coverage data directory
+/tests/coverage/
