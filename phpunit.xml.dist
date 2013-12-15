@@ -24,8 +24,13 @@
     <!-- Logging -->
     <logging>
         <log type="coverage-clover" target="tests/coverage/clover.xml" />
-        <log type="coverage-html" target="tests/coverage/html" highlight="true" />
         <log type="coverage-text" target="php://stdout" />
+        <log
+            type="coverage-html"
+            target="tests/coverage/html"
+            highlight="true"
+            lowUpperBound="1" highLowerBound="99"
+        />
     </logging>
 
 </phpunit>
