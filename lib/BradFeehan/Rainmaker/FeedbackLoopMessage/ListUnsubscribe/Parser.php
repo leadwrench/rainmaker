@@ -20,27 +20,11 @@ class Parser implements ParserInterface
 {
 
     /**
-     * The List-Unsubscribe header that's being parsed by this Parser
-     *
-     * @var Zend\Mail\Header\GenericHeader $header
-     */
-    protected $header;
-
-
-    /**
      * {@inheritdoc}
      */
-    public function __construct(GenericHeader $header)
+    public function parse(GenericHeader $header)
     {
-        $this->header = $header;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function parse()
-    {
-        $raw = $this->header->getFieldValue();
+        $raw = $header->getFieldValue();
 
         // "[...] client applications should treat any whitespace, that
         // might be inserted by poorly behaved MTAs, as characters to
