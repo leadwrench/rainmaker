@@ -11,19 +11,16 @@ interface ParserInterface
 {
 
     /**
-     * Initializes a new Parser instance from a List-Unsubscribe header
-     *
-     * @param Zend\Mail\Header\GenericHeader $header The header
-     */
-    public function __construct(GenericHeader $header);
-
-    /**
-     * Retrieves the URLs from the List-Unsubscribe header
+     * Retrieves the list of URLs from a List-Unsubscribe header
      *
      * Should return an numerically-indexed array, containing each URL
-     * as a string.
+     * as a string. If no unsubscribe URLs could be parsed, an empty
+     * array should be returned (in other words, always return an
+     * array, or throw an exception if necessary).
+     *
+     * @param Zend\Mail\Header\GenericHeader $header The header
      *
      * @return array
      */
-    public function parse();
+    public function parse(GenericHeader $header);
 }
