@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    verbose="true"
+    strict="true"
+    bootstrap="tests/bootstrap.php"
+>
+
+    <!-- Test suites to be run -->
+    <testsuites>
+        <testsuite name="bradfeehan/rainmaker">
+            <directory suffix="Test.php">tests/BradFeehan/Rainmaker/Test/Unit</directory>
+            <directory suffix="SystemTest.php">tests/BradFeehan/Rainmaker/Test/System</directory>
+        </testsuite>
+    </testsuites>
+
+    <!-- Filters for code coverage reporting -->
+    <filter>
+        <whitelist>
+            <directory>lib</directory>
+        </whitelist>
+    </filter>
+
+    <!-- Logging -->
+    <logging>
+        <log type="coverage-clover" target="tests/coverage/clover.xml" />
+        <log type="coverage-text" target="php://stdout" />
+        <log
+            type="coverage-html"
+            target="tests/coverage/html"
+            highlight="true"
+            lowUpperBound="1" highLowerBound="99"
+        />
+    </logging>
+
+</phpunit>
