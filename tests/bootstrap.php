@@ -3,6 +3,9 @@
 // Always show all errors during testing
 error_reporting(-1);
 
+// Set default timezone to UTC for tests
+ini_set('date.timezone', 'UTC');
+
 $ds = DIRECTORY_SEPARATOR;
 $autoloader = dirname(__DIR__) . "{$ds}vendor{$ds}autoload.php";
 
