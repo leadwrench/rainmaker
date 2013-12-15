@@ -10,19 +10,6 @@ class ParserTest extends UnitTestCase
 {
 
     /**
-     * @covers BradFeehan\Rainmaker\FeedbackLoopMessage\ListUnsubscribe\Parser::__construct
-     */
-    public function testConstruct()
-    {
-        $parser = new Parser($this->header());
-        $this->assertInstanceOf(
-            'BradFeehan\\Rainmaker\\FeedbackLoopMessage\\' .
-            'ListUnsubscribe\\ParserInterface',
-            $parser
-        );
-    }
-
-    /**
      * @param Zend\Mail\Header\GenericHeader $header   The input header
      * @param array                          $expected Expected output
      *
@@ -31,8 +18,7 @@ class ParserTest extends UnitTestCase
      */
     public function testParse(GenericHeader $header, $expected)
     {
-        $parser = new Parser($header);
-        $this->assertSame($expected, $parser->parse());
+        $this->assertSame($expected, $this->parser()->parse($header));
     }
 
     public function dataParse()
@@ -41,6 +27,10 @@ class ParserTest extends UnitTestCase
             // Simple example
             array(
                 $this->header('<value1>, <value2>'),
+                array('value1', 'value2'),
+            ),
+            array(
+                $this->header(" <  value 1 >, \t< value  2 >  "),
                 array('value1', 'value2'),
             ),
 
@@ -89,20 +79,20 @@ class ParserTest extends UnitTestCase
     public function testParseStripsWhitespace()
     {
         $header = $this->header(" <  value 1 >, \t< value  2 >  ");
-        $parser = new Parser($header);
-        $this->assertSame(array('value1', 'value2'), $parser->parse());
+        $expected = array('value1', 'value2');
+        $this->assertSame($expected, $this->parser()->parse($header));
     }
+
 
     /**
-     * @covers BradFeehan\Rainmaker\FeedbackLoopMessage\ListUnsubscribe\Parser::parse
+     * Creates an instance of the parser for testing
+     *
+     * @return BradFeehan\Rainmaker\FeedbackLoopMessage\ListUnsubscribe\Parser
      */
-    public function testParseWithComplexValue()
+    private function parser()
     {
-        $header = $this->header(" <  value 1 >, \t< value  2 >  ");
-        $parser = new Parser($header);
-        $this->assertSame(array('value1', 'value2'), $parser->parse());
+        return new Parser();
     }
-
 
     /**
      * Creates a mock header object with a particular value
