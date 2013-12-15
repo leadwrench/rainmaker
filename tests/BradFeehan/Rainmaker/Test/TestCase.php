@@ -42,4 +42,31 @@ abstract class TestCase extends PHPUnit_Framework_TestCase
         $ds = DIRECTORY_SEPARATOR;
         return realpath(__DIR__ . "{$ds}..{$ds}..{$ds}..{$ds}fixtures");
     }
+
+    /**
+     * Invokes a private or protected method on any object
+     *
+     * @param object $object     The object to invoke the method on
+     * @param string $methodName The name of the method to invoke
+     * @param mixed  $arguments  Any additional arguments are used as
+     *                           arguments for the method call.
+     *
+     * @return mixed The return value of the private/protected method
+     */
+    protected function invokePrivateMethod($object, $methodName/* , [$arg1[, $arg2 ...]]  */)
+    {
+        // Create a ReflectionObject from the $object
+        $objectReflection = new ReflectionObject($object);
+
+        // Retrieve the specified method from the reflection object
+        $method = $objectReflection->getMethod($methodName);
+
+        // This is where the magic happens, allowing us to call the
+        // method from outside the class
+        $method->setAccessible(true);
+
+        // Actually invoke the method and return the return value
+        $arguments = array_slice(func_get_args(), 2);
+        return $method->invokeArgs($object, $arguments);
+    }
 }
