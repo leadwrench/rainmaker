@@ -22,6 +22,18 @@ class FeedbackLoopMessageTest extends UnitTestCase
     }
 
     /**
+     * @covers BradFeehan\Rainmaker\FeedbackLoopMessage::getSource
+     */
+    public function testGetSource()
+    {
+        $source = \Mockery::mock('Zend\\Mail\\Storage\\Part');
+        $this->assertSame(
+            $source,
+            $this->message($source)->getSource()
+        );
+    }
+
+    /**
      * @covers BradFeehan\Rainmaker\FeedbackLoopMessage::getParser
      */
     public function testGetParser()

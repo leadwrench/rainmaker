@@ -63,6 +63,16 @@ class FeedbackLoopMessage
     }
 
     /**
+     * Retrieves the source e-mail mesage for this FeedbackLoopMessage
+     *
+     * @return Zend\Mail\Storage\Part\PartInterface
+     */
+    public function getSource()
+    {
+        return $this->source;
+    }
+
+    /**
      * Retrieves the parser for this FeedbackLoopMessage
      *
      * @return BradFeehan\Rainmaker\FeedbackLoopMessage\ListUnsubscribe\ParserInterface
@@ -91,14 +101,14 @@ class FeedbackLoopMessage
      */
     public function getUnsubscribeUrls()
     {
-        if (!$this->source->isMultipart()) {
+        if (!$this->getSource()->isMultipart()) {
             // The FeedbackLoopMessage isn't multipart, so it can't
             // contain a copy of the original message.
             return array();
         }
 
         // Iterate over each of the multipart parts
-        foreach ($this->source as $part) {
+        foreach ($this->getSource() as $part) {
             $urls = $this->parsePart($part);
             if ($urls !== null) {
                 return $urls;
