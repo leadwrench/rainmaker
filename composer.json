@@ -19,6 +19,7 @@
     },
     "require": {
         "php": ">= 5.3",
+        "symfony/config": "~2.4.0",
         "zendframework/zend-mail": "~2.2.5"
     },
     "require-dev": {
