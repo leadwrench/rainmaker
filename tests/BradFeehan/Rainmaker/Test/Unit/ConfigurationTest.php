@@ -89,6 +89,19 @@ class ConfigurationTest extends UnitTestCase
     }
 
     /**
+     * @covers BradFeehan\Rainmaker\Configuration::get
+     */
+    public function testGetWithDeepKey()
+    {
+        $data = array(
+            'foo' => array('bar' => '$result'),
+        );
+
+        $configuration = $this->configuration($data);
+        $this->assertSame('$result', $configuration->get('foo/bar'));
+    }
+
+    /**
      * @covers BradFeehan\Rainmaker\Configuration::getConfigTreeBuilder
      */
     public function testGetConfigTreeBuilder()

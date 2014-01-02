@@ -67,6 +67,11 @@ class Configuration implements ConfigurationInterface
     /**
      * Retrieves a configuration item by key, or the whole config array
      *
+     * Optionally, the key can contain a forward-slash character ("/"),
+     * which allows accessing sub-elements of arrays. For example, to
+     * access the "bar" element of the array contained in the "foo"
+     * key, use "foo/bar" for $key.
+     *
      * If $key is null, the entire configuration array is returned.
      *
      * @param string $key The key to retrieve
@@ -75,17 +80,24 @@ class Configuration implements ConfigurationInterface
      */
     public function get($key = null)
     {
+        $result = $this->data;
+
+        // Short-circuit if key is null, return full data array
         if ($key === null) {
-            return $this->data;
+            return $result;
         }
 
-        if (!isset($this->data[$key])) {
-            throw new InvalidArgumentException(
-                "Unknown configuration key '$key'"
-            );
+        foreach (explode('/', (string) $key) as $part) {
+            if (!isset($result[$part])) {
+                throw new InvalidArgumentException(
+                    "Unknown configuration key '$key'"
+                );
+            }
+
+            $result = $result[$part];
         }
 
-        return $this->data[$key];
+        return $result;
     }
 
     /**
