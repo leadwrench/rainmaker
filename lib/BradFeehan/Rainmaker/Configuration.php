@@ -3,6 +3,7 @@
 namespace BradFeehan\Rainmaker;
 
 use BradFeehan\Rainmaker\Exception\InvalidArgumentException;
+use ReflectionClass;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Processor;
@@ -21,6 +22,13 @@ class Configuration implements ConfigurationInterface
      * @var array
      */
     private $data;
+
+    /**
+     * Cache for the logger as set up in this configuration
+     *
+     * @var Psr\Log\LoggerInterface
+     */
+    private $logger;
 
     /**
      * The processor that is used to parse configuration input
@@ -101,6 +109,39 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
+     * Retrieves the logger as set up in this configuration
+     *
+     * @return Psr\Log\LoggerInterface
+     */
+    public function logger()
+    {
+        if (!$this->logger) {
+            $this->logger = $this->createLogger();
+        }
+
+        return $this->logger;
+    }
+
+    /**
+     * Creates the logger as set up in this configuration
+     *
+     * The returned value of this method is cached in the logger()
+     * method.
+     *
+     * @return Psr\Log\LoggerInterface
+     */
+    protected function createLogger()
+    {
+        // Instantiate configurer
+        $configClassName = $this->get('logger/configuration/class');
+        $configClass = new ReflectionClass($configClassName);
+        $configurer = $configClass->newInstance();
+
+        // Configure logger using the configurer
+        return $configurer->createLogger($this->get('logger/class'));
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getConfigTreeBuilder()
@@ -128,6 +169,58 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('port')->end()
                             ->scalarNode('ssl')->end()
                             ->scalarNode('folder')->end()
+                        ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('logger')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('class')
+                            ->cannotBeEmpty()
+                            ->defaultValue('Monolog\\Logger')
+                            ->validate()
+                                // if not a valid PSR-3 logger...
+                                ->ifTrue(function ($value) {
+                                    return !is_a(
+                                        $value,
+                                        'Psr\\Log\\LoggerInterface',
+                                        true
+                                    );
+                                })
+                                ->thenInvalid(
+                                    "'%s' isn't a PSR-3 logger. " .
+                                    'It must implement the interface ' .
+                                    'Psr\\Log\\LoggerInterface'
+                                )
+                            ->end()
+                        ->end()
+                        ->arrayNode('configuration')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('class')
+                                    ->cannotBeEmpty()
+                                    ->defaultValue(
+                                        'BradFeehan\\Rainmaker\\' .
+                                        'Logging\\MonologConfigurer'
+                                    )
+                                    ->validate()
+                                        ->ifTrue(function ($value) {
+                                            return !is_a(
+                                                $value,
+                                                'BradFeehan\\Rainmaker\\' .
+                                                'Logging\\ConfigurerInterface',
+                                                true
+                                            );
+                                        })
+                                        ->thenInvalid(
+                                            "'%s' isn't a configurer class. " .
+                                            'It must implement the interface ' .
+                                            'BradFeehan\\Rainmaker\\' .
+                                            'Logging\\ConfigurerInterface'
+                                        )
+                                    ->end()
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

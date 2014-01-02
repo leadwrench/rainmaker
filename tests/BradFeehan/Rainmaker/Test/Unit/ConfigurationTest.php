@@ -46,6 +46,43 @@ class ConfigurationTest extends UnitTestCase
     }
 
     /**
+     * @covers BradFeehan\Rainmaker\Configuration::getConfigTreeBuilder
+     * @covers BradFeehan\Rainmaker\Configuration::process
+     * @dataProvider dataProcessInvalid
+     * @expectedException Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
+     */
+    public function testProcessInvalid($data = array())
+    {
+        $configuration = new Configuration();
+        $configuration->process($data);
+    }
+
+    public function dataProcessInvalid()
+    {
+        return array(
+            array(
+                array(
+                    'mailboxes' => array(array('user' => '$user')),
+                    'logger' => array('class' => 'foo'),
+                ),
+            ),
+            array(
+                array(
+                    'mailboxes' => array(array('user' => '$user')),
+                    'logger' => array(
+                        'class' => get_class(
+                            \Mockery::mock('Psr\\Log\\LoggerInterface')
+                        ),
+                        'configuration' => array(
+                            'class' => 'foo',
+                        ),
+                    ),
+                ),
+            ),
+        );
+    }
+
+    /**
      * @covers BradFeehan\Rainmaker\Configuration::get
      */
     public function testGetWithNoArguments()
@@ -111,6 +148,31 @@ class ConfigurationTest extends UnitTestCase
             'Symfony\\Component\\Config\\Definition\\Builder\\TreeBuilder',
             $configuration->getConfigTreeBuilder()
         );
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Configuration::logger()
+     * @covers BradFeehan\Rainmaker\Configuration::createLogger()
+     */
+    public function testLogger()
+    {
+        $logger = \Mockery::mock();
+        $configurer = \Mockery::mock('overload:MockConfigurer')
+            ->shouldReceive('createLogger')
+                ->with(get_class($logger))
+                ->andReturn($logger)
+            ->getMock();
+
+        $configuration = $this->configuration(array(
+            'logger' => array(
+                'class' => get_class($logger),
+                'configuration' => array(
+                    'class' => get_class($configurer),
+                ),
+            ),
+        ));
+
+        $this->assertInstanceOf(get_class($logger), $configuration->logger());
     }
 
 
