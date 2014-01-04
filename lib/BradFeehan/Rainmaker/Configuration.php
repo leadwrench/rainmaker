@@ -149,6 +149,10 @@ class Configuration implements ConfigurationInterface
         $builder = new TreeBuilder();
         $builder->root('rainmaker')
             ->children()
+                ->integerNode('interval')
+                    ->cannotBeEmpty()
+                    ->defaultValue(60)
+                ->end()
                 ->arrayNode('mailboxes')
                     ->isRequired()
                     ->requiresAtLeastOneElement()
