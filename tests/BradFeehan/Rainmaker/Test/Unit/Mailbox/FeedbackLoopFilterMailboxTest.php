@@ -5,6 +5,7 @@ namespace BradFeehan\Rainmaker\Test\Unit\Mailbox;
 use ArrayIterator;
 use BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox;
 use BradFeehan\Rainmaker\Test\UnitTestCase;
+use stdClass;
 use Zend\Mail\Storage\Message;
 
 class FeedbackLoopFilterMailboxTest extends UnitTestCase
@@ -141,5 +142,36 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
         $mailbox = new FeedbackLoopFilterMailbox($innerMailbox, 'test');
 
         $this->assertSame($original, $mailbox->original());
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::count
+     */
+    public function testCount()
+    {
+        $contentType = \Mockery::mock('Zend\\Mail\\Header\\ContentType')
+            ->shouldReceive('getType')
+                ->andReturn('multipart/report')
+            ->shouldReceive('getParameter')
+                ->andReturn('feedback-report')
+            ->getMock();
+
+        $feedbackLoopMessage = \Mockery::mock('Zend\\Mail\\Storage\\Message')
+            ->shouldReceive('getHeader')
+                ->with('Content-Type')
+                ->andReturn($contentType)
+            ->getMock();
+
+
+        $innerMailbox = new ArrayIterator(array(
+            $feedbackLoopMessage,
+            $feedbackLoopMessage,
+            new stdClass(),
+            $feedbackLoopMessage,
+        ));
+
+        $mailbox = new FeedbackLoopFilterMailbox($innerMailbox, 'test');
+
+        $this->assertSame(3, count($mailbox));
     }
 }

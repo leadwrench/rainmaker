@@ -4,6 +4,7 @@ namespace BradFeehan\Rainmaker\Mailbox;
 
 use BradFeehan\Rainmaker\FeedbackLoopMessage;
 use BradFeehan\Rainmaker\MailboxInterface;
+use Countable;
 use FilterIterator;
 use Iterator;
 use Zend\Mail\Storage\Message;
@@ -15,8 +16,15 @@ use Zend\Mail\Storage\Message;
  * to only iterate over the messages that are actually feedback loop
  * messages.
  */
-class FeedbackLoopFilterMailbox extends FilterIterator implements MailboxInterface
+class FeedbackLoopFilterMailbox extends FilterIterator implements MailboxInterface, Countable
 {
+
+    /**
+     * The number of messages in this mailbox
+     *
+     * @var integer
+     */
+    private $count;
 
     /**
      * The name of this mailbox
@@ -89,5 +97,21 @@ class FeedbackLoopFilterMailbox extends FilterIterator implements MailboxInterfa
     public function original()
     {
         return $this->getInnerIterator()->current();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function count()
+    {
+        if ($this->count === null) {
+            $this->count = 0;
+
+            foreach ($this as $item) {
+                $this->count++;
+            }
+        }
+
+        return $this->count;
     }
 }
