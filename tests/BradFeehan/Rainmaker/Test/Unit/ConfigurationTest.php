@@ -62,13 +62,23 @@ class ConfigurationTest extends UnitTestCase
         return array(
             array(
                 array(
-                    'mailboxes' => array(array('user' => '$user')),
+                    'mailboxes' => array(
+                        array(
+                            'protocol' => 'imap',
+                            'host' => '$host',
+                        ),
+                    ),
                     'logger' => array('class' => 'foo'),
                 ),
             ),
             array(
                 array(
-                    'mailboxes' => array(array('user' => '$user')),
+                    'mailboxes' => array(
+                        array(
+                            'protocol' => 'pop',
+                            'host' => '$host',
+                        ),
+                    ),
                     'logger' => array(
                         'class' => get_class(
                             \Mockery::mock('Psr\\Log\\LoggerInterface')

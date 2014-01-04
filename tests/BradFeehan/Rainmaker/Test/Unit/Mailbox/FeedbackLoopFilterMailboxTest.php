@@ -11,6 +11,35 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
 {
 
     /**
+     * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::__construct
+     */
+    public function testConstruct()
+    {
+        $mailbox = \Mockery::mock(
+            'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[]',
+            array(\Mockery::mock('Iterator'), '$test') // needs constructor arg
+        );
+
+        $this->assertInstanceOf(
+            'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox',
+            $mailbox
+        );
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::getName
+     */
+    public function testGetName()
+    {
+        $mailbox = \Mockery::mock(
+            'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[]',
+            array(\Mockery::mock('Iterator'), '$test') // needs constructor arg
+        );
+
+        $this->assertSame($mailbox->getName(), '$test');
+    }
+
+    /**
      * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::accept
      */
     public function testAccept()
@@ -30,7 +59,7 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
 
         $mailbox = \Mockery::mock(
             'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[original]',
-            array(\Mockery::mock('Iterator')) // needs constructor arg
+            array(\Mockery::mock('Iterator'), 'test') // needs constructor arg
         );
         $mailbox->shouldReceive('original')->andReturn($original);
 
@@ -46,7 +75,7 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
 
         $mailbox = \Mockery::mock(
             'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[original]',
-            array(\Mockery::mock('Iterator')) // needs constructor arg
+            array(\Mockery::mock('Iterator'), 'test') // needs constructor arg
         );
         $mailbox->shouldReceive('original')->andReturn($original);
 
@@ -71,7 +100,7 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
 
         $mailbox = \Mockery::mock(
             'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[original]',
-            array(\Mockery::mock('Iterator')) // needs constructor arg
+            array(\Mockery::mock('Iterator'), 'test') // needs constructor arg
         );
         $mailbox->shouldReceive('original')->andReturn($original);
 
@@ -87,7 +116,7 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
 
         $mailbox = \Mockery::mock(
             'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[original]',
-            array(\Mockery::mock('Iterator')) // needs constructor arg
+            array(\Mockery::mock('Iterator'), 'test') // needs constructor arg
         );
         $mailbox->shouldReceive('original')->andReturn($original);
 
@@ -109,7 +138,7 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
         $original = \Mockery::mock('Zend\\Mail\\Storage\\Message');
 
         $innerMailbox = new ArrayIterator(array($original));
-        $mailbox = new FeedbackLoopFilterMailbox($innerMailbox);
+        $mailbox = new FeedbackLoopFilterMailbox($innerMailbox, 'test');
 
         $this->assertSame($original, $mailbox->original());
     }

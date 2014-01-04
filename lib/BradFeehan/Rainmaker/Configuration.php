@@ -154,18 +154,20 @@ class Configuration implements ConfigurationInterface
                     ->requiresAtLeastOneElement()
                     ->prototype('array')
                         ->children()
+                            ->scalarNode('name')->end()
                             ->enumNode('protocol')
+                                ->isRequired()
                                 ->values(array(
                                     'imap',
                                     'pop',
                                 ))
                             ->end()
-                            ->scalarNode('user')
+                            ->scalarNode('user')->end()
+                            ->scalarNode('password')->end()
+                            ->scalarNode('host')
                                 ->isRequired()
                                 ->cannotBeEmpty()
                             ->end()
-                            ->scalarNode('password')->end()
-                            ->scalarNode('host')->end()
                             ->scalarNode('port')->end()
                             ->scalarNode('ssl')->end()
                             ->scalarNode('folder')->end()

@@ -5,6 +5,7 @@ namespace BradFeehan\Rainmaker\Mailbox;
 use BradFeehan\Rainmaker\FeedbackLoopMessage;
 use BradFeehan\Rainmaker\MailboxInterface;
 use FilterIterator;
+use Iterator;
 use Zend\Mail\Storage\Message;
 
 /**
@@ -16,6 +17,36 @@ use Zend\Mail\Storage\Message;
  */
 class FeedbackLoopFilterMailbox extends FilterIterator implements MailboxInterface
 {
+
+    /**
+     * The name of this mailbox
+     *
+     * @var string
+     */
+    private $name;
+
+
+    /**
+     * Initializes a new Mailbox from an inner iterator and name
+     *
+     * @param Iterator $innerIterator The mailbox to filter
+     * @param string   $name          The name of this mailbox
+     */
+    public function __construct(Iterator $innerIterator, $name)
+    {
+        $this->name = $name;
+        parent::__construct($innerIterator);
+    }
+
+    /**
+     * Retrieves the name of this mailbox
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
 
     /**
      * {@inheritdoc}
