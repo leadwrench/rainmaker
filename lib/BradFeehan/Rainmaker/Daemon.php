@@ -112,9 +112,13 @@ class Daemon
             // Refresh the mailbox
             $mailbox->refresh();
 
-            $this->logger()->notice(
-                "Found {$mailbox->count()} feedback loop messages"
-            );
+            // Print count of all messages in current folder
+            $total = $mailbox->getInnerIterator()->countMessages();
+            $this->logger()->info("Found {$total} messages in total");
+
+            // Print count of feedback loop messages specifically
+            $count = $mailbox->count();
+            $this->logger()->notice("Found {$count} feedback reports");
 
             // Iterate over all feedback report messages in the mailbox
             foreach ($mailbox as $feedbackLoopMessage) {

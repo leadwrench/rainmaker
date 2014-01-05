@@ -161,14 +161,20 @@ class DaemonTest extends UnitTestCase
             ->shouldReceive('info')
                 ->with('Checking mailbox \'$mailbox1\'...')
                 ->once()->ordered()
+            ->shouldReceive('info')
+                ->with('Found $count1a messages in total')
+                ->once()->ordered()
             ->shouldReceive('notice')
-                ->with('Found $count1 feedback loop messages')
+                ->with('Found $count1b feedback reports')
                 ->once()->ordered()
             ->shouldReceive('info')
                 ->with('Checking mailbox \'$mailbox2\'...')
                 ->once()->ordered()
+            ->shouldReceive('info')
+                ->with('Found $count2a messages in total')
+                ->once()->ordered()
             ->shouldReceive('notice')
-                ->with('Found $count2 feedback loop messages')
+                ->with('Found $count2b feedback reports')
                 ->once()->ordered()
             ->shouldReceive('info')
                 ->with('Check successfully completed')
@@ -177,6 +183,12 @@ class DaemonTest extends UnitTestCase
 
         $message1 = \Mockery::mock();
         $message2 = \Mockery::mock();
+
+        $innerIterator1 = \Mockery::mock()
+            ->shouldReceive('countMessages')
+                ->withNoArgs()
+                ->andReturn('$count1a')
+            ->getMock();
 
         $mailbox1 = \Mockery::mock(
             'ArrayIterator[getName,refresh,getInnerIterator,count]',
@@ -187,9 +199,18 @@ class DaemonTest extends UnitTestCase
                 ->andReturn('$mailbox1')
             ->shouldReceive('refresh')
                 ->withNoArgs()
+            ->shouldReceive('getInnerIterator')
+                ->withNoArgs()
+                ->andReturn($innerIterator1)
             ->shouldReceive('count')
                 ->withNoArgs()
-                ->andReturn('$count1')
+                ->andReturn('$count1b')
+            ->getMock();
+
+        $innerIterator2 = \Mockery::mock()
+            ->shouldReceive('countMessages')
+                ->withNoArgs()
+                ->andReturn('$count2a')
             ->getMock();
 
         $mailbox2 = \Mockery::mock(
@@ -201,9 +222,12 @@ class DaemonTest extends UnitTestCase
                 ->andReturn('$mailbox2')
             ->shouldReceive('refresh')
                 ->withNoArgs()
+            ->shouldReceive('getInnerIterator')
+                ->withNoArgs()
+                ->andReturn($innerIterator2)
             ->shouldReceive('count')
                 ->withNoArgs()
-                ->andReturn('$count2')
+                ->andReturn('$count2b')
             ->getMock();
 
         $mailboxes = array($mailbox1, $mailbox2);
