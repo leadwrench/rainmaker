@@ -18,6 +18,7 @@
         }
     },
     "require": {
+        "guzzle/guzzle": "~3.8.0",
         "monolog/monolog": "~1.7.0",
         "php": ">= 5.3",
         "psr/log": "~1.0.0",
