@@ -1,0 +1,13 @@
+interval: 60
+mailboxes:
+  - name: test@example.com
+    protocol: imap
+    host: imap.example.com
+    port: 993
+    ssl: SSL
+    user: test@example.com
+    password: secret
+logger:
+  class: Monolog\Logger
+  configuration:
+    class: BradFeehan\Rainmaker\Logging\MonologConfigurer

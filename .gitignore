@@ -5,3 +5,8 @@
 
 # Test coverage data directory
 /tests/coverage/
+
+# User configuration data
+/config/*.yaml
+/config/*.yml
+!/config/config.sample.yaml
