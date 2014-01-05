@@ -5,6 +5,9 @@ namespace BradFeehan\Rainmaker;
 use BradFeehan\Rainmaker\Configuration;
 use BradFeehan\Rainmaker\Executer;
 use BradFeehan\Rainmaker\ExecuterInterface;
+use Guzzle\Common\Exception\GuzzleException;
+use Guzzle\Http\Client;
+use Guzzle\Http\Exception\ClientErrorResponseException;
 
 /**
  * Manages the running Rainmaker instance
@@ -25,6 +28,13 @@ class Daemon
      * @var BradFeehan\Rainmaker\ExecuterInterface
      */
     private $executer;
+
+    /**
+     * The Guzzle HTTP client used by this Daemon
+     *
+     * @var Guzzle\Http\ClientInterface
+     */
+    private $guzzleClient;
 
     /**
      * The array of configured mailboxes
@@ -136,6 +146,81 @@ class Daemon
      */
     public function processMessage($message)
     {
-        // TODO
+        try {
+            $subject = $message->getSource()->getHeader('Subject')->toString();
+        } catch (\Zend\Mail\Storage\Exception\InvalidArgumentException $e) {
+            $subject = '(No subject)';
+        }
+
+        $this->logger()->info(
+            "Processing feedback report",
+            array('subject' => $subject)
+        );
+
+        $urls = $message->getUnsubscribeUrls();
+        $this->logger()->notice(
+            "Found URLs: '" . implode("', '", $urls) . "'."
+        );
+
+        // Send requests to any HTTP unsubscribe URLs
+        foreach ($urls as $url) {
+            if (preg_match('#^https?://#', $url)) {
+                $this->request($url);
+            }
+        }
+    }
+
+    /**
+     * Requests a URL via HTTP
+     *
+     * @param string $url The URL to request
+     */
+    public function request($url)
+    {
+        $this->logger()->info('Sending HTTP request', array('url' => $url));
+
+        try {
+            $this->guzzleClient()->get($url)->send();
+        } catch (ClientErrorResponseException $e) {
+            if ($e->getResponse()->getStatusCode() == 404) {
+                // Log a warning if it was "only" a 404
+                $this->logger()->warning(
+                    "Unsubscribe URL returned HTTP 404 Not Found",
+                    array('url' => $url)
+                );
+            } else {
+                // Handle other client errors more severely
+                $this->handleGuzzleException($e);
+            }
+        } catch (GuzzleException $e) {
+            $this->handleGuzzleException($e);
+        }
+    }
+
+    /**
+     * Handles unknown Guzzle exceptions
+     *
+     * @param Guzzle\Common\Exception\GuzzleException $exception
+     */
+    public function handleGuzzleException($exception)
+    {
+        $this->logger()->error(
+            'Unknown error occurred during HTTP request: ' .
+            $exception->getMessage()
+        );
+    }
+
+    /**
+     * Retrieves the Guzzle HTTP client to use for this daemon
+     *
+     * @return Guzzle\Http\ClientInterface
+     */
+    public function guzzleClient()
+    {
+        if (!$this->guzzleClient) {
+            $this->guzzleClient = new Client();
+        }
+
+        return $this->guzzleClient;
     }
 }

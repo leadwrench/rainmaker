@@ -261,6 +261,309 @@ class DaemonTest extends UnitTestCase
         $this->assertTrue(true);
     }
 
+    /**
+     * @covers BradFeehan\Rainmaker\Daemon::processMessage
+     */
+    public function testProcessMessage()
+    {
+        $message = \Mockery::mock('BradFeehan\\Rainmaker\\FeedbackLoopMessage')
+            ->shouldReceive('getUnsubscribeUrls')
+                ->withNoArgs()
+                ->andReturn(array('http://url1', '$url2'))
+            ->getMock();
+
+        $message
+            ->shouldReceive('getSource->getHeader->toString')
+            ->andReturn('$subject');
+
+        $logger = \Mockery::mock('Psr\\Log\\LoggerInterface')
+            ->shouldReceive('info')
+                ->with(
+                    'Processing feedback report',
+                    array('subject' => '$subject')
+                )
+                ->once()->ordered()
+            ->shouldReceive('notice')
+                ->with("Found URLs: 'http://url1', '\$url2'.")
+                ->once()->ordered()
+            ->getMock();
+
+        $daemon = $this->daemon('processMessage')
+            ->shouldReceive('logger')
+                ->withNoArgs()
+                ->andReturn($logger)
+            ->shouldReceive('request')
+                ->with('http://url1')
+                ->once()->ordered()
+            ->getMock();
+
+        $daemon->processMessage($message);
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Daemon::processMessage
+     */
+    public function testProcessMessageWithNoSubject()
+    {
+        $message = \Mockery::mock('BradFeehan\\Rainmaker\\FeedbackLoopMessage')
+            ->shouldReceive('getUnsubscribeUrls')
+                ->withNoArgs()
+                ->andReturn(array('$url1', '$url2'))
+            ->getMock();
+
+        $message
+            ->shouldReceive('getSource->getHeader')
+            ->andThrow(
+                'Zend\\Mail\\Storage\\Exception\\InvalidArgumentException'
+            );
+
+        $logger = \Mockery::mock('Psr\\Log\\LoggerInterface')
+            ->shouldReceive('info')
+                ->with(
+                    'Processing feedback report',
+                    array('subject' => '(No subject)')
+                )
+                ->once()->ordered()
+            ->shouldReceive('notice')
+                ->with("Found URLs: '\$url1', '\$url2'.")
+                ->once()->ordered()
+            ->getMock();
+
+        $daemon = $this->daemon('processMessage')
+            ->shouldReceive('logger')
+                ->withNoArgs()
+                ->andReturn($logger)
+            ->shouldReceive('request')
+                ->with('$url1')
+                ->once()->ordered()
+            ->shouldReceive('request')
+                ->with('$url2')
+                ->once()->ordered()
+            ->getMock();
+
+        $daemon->processMessage($message);
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Daemon::request
+     */
+    public function testRequest()
+    {
+        $logger = \Mockery::mock('Psr\\Log\\LoggerInterface')
+            ->shouldReceive('info')
+                ->with('Sending HTTP request', array('url' => '$url'))
+                ->once()->ordered()
+            ->getMock();
+
+        $request = \Mockery::mock('Guzzle\\Http\\Message\\RequestInterface')
+            ->shouldReceive('send')
+                ->withNoArgs()
+                ->once()->ordered()
+            ->getMock();
+
+        $guzzleClient = \Mockery::mock('Guzzle\\Http\\ClientInterface')
+            ->shouldReceive('get')
+                ->with('$url')
+                ->andReturn($request)
+            ->getMock();
+
+        $daemon = $this->daemon('request')
+            ->shouldReceive('logger')
+                ->withNoArgs()
+                ->andReturn($logger)
+            ->shouldReceive('guzzleClient')
+                ->withNoArgs()
+                ->andReturn($guzzleClient)
+            ->getMock();
+
+
+        $daemon->request('$url');
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Daemon::request
+     */
+    public function testRequestWithHTTP404NotFoundError()
+    {
+        $logger = \Mockery::mock('Psr\\Log\\LoggerInterface')
+            ->shouldReceive('info')
+                ->with('Sending HTTP request', array('url' => '$url'))
+                ->once()->ordered()
+            ->shouldReceive('warning')
+                ->with(
+                    'Unsubscribe URL returned HTTP 404 Not Found',
+                    array('url' => '$url')
+                )
+                ->once()->ordered()
+            ->getMock();
+
+        $exception = \Mockery::mock(
+            'Guzzle\\Http\\Exception\\ClientErrorResponseException'
+        );
+
+        $exception
+            ->shouldReceive('getResponse->getStatusCode')
+                ->withNoArgs()
+                ->andReturn(404);
+
+        $request = \Mockery::mock('Guzzle\\Http\\Message\\RequestInterface')
+            ->shouldReceive('send')
+                ->withNoArgs()
+                ->andThrow($exception)
+            ->getMock();
+
+        $guzzleClient = \Mockery::mock('Guzzle\\Http\\ClientInterface')
+            ->shouldReceive('get')
+                ->with('$url')
+                ->andReturn($request)
+            ->getMock();
+
+        $daemon = $this->daemon('request')
+            ->shouldReceive('logger')
+                ->withNoArgs()
+                ->andReturn($logger)
+            ->shouldReceive('guzzleClient')
+                ->withNoArgs()
+                ->andReturn($guzzleClient)
+            ->getMock();
+
+        $daemon->request('$url');
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Daemon::request
+     */
+    public function testRequestWithOtherClientError()
+    {
+        $logger = \Mockery::mock('Psr\\Log\\LoggerInterface')
+            ->shouldReceive('info')
+                ->with('Sending HTTP request', array('url' => '$url'))
+                ->once()->ordered()
+            ->getMock();
+
+        $exception = \Mockery::mock(
+            'Guzzle\\Http\\Exception\\ClientErrorResponseException'
+        );
+
+        $exception
+            ->shouldReceive('getResponse->getStatusCode')
+                ->withNoArgs()
+                ->andReturn('$statusCode');
+
+        $request = \Mockery::mock('Guzzle\\Http\\Message\\RequestInterface')
+            ->shouldReceive('send')
+                ->withNoArgs()
+                ->andThrow($exception)
+            ->getMock();
+
+        $guzzleClient = \Mockery::mock('Guzzle\\Http\\ClientInterface')
+            ->shouldReceive('get')
+                ->with('$url')
+                ->andReturn($request)
+            ->getMock();
+
+        $daemon = $this->daemon('request')
+            ->shouldReceive('logger')
+                ->withNoArgs()
+                ->andReturn($logger)
+            ->shouldReceive('guzzleClient')
+                ->withNoArgs()
+                ->andReturn($guzzleClient)
+            ->shouldReceive('handleGuzzleException')
+                ->with($exception)
+                ->once()->ordered()
+            ->getMock();
+
+        $daemon->request('$url');
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Daemon::request
+     */
+    public function testRequestWithUnknownGuzzleError()
+    {
+        $logger = \Mockery::mock('Psr\\Log\\LoggerInterface')
+            ->shouldReceive('info')
+                ->with('Sending HTTP request', array('url' => '$url'))
+                ->once()->ordered()
+            ->getMock();
+
+        $exception = \Mockery::mock(
+            'Exception,Guzzle\\Common\\Exception\\GuzzleException'
+        );
+
+        $request = \Mockery::mock('Guzzle\\Http\\Message\\RequestInterface')
+            ->shouldReceive('send')
+                ->withNoArgs()
+                ->andThrow($exception)
+            ->getMock();
+
+        $guzzleClient = \Mockery::mock('Guzzle\\Http\\ClientInterface')
+            ->shouldReceive('get')
+                ->with('$url')
+                ->andReturn($request)
+            ->getMock();
+
+        $daemon = $this->daemon('request')
+            ->shouldReceive('logger')
+                ->withNoArgs()
+                ->andReturn($logger)
+            ->shouldReceive('guzzleClient')
+                ->withNoArgs()
+                ->andReturn($guzzleClient)
+            ->shouldReceive('handleGuzzleException')
+                ->with($exception)
+                ->once()->ordered()
+            ->getMock();
+
+        $daemon->request('$url');
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Daemon::handleGuzzleException
+     */
+    public function testHandleGuzzleException()
+    {
+        $exception = \Mockery::mock()
+            ->shouldReceive('getMessage')
+                ->withNoArgs()
+                ->andReturn('$message')
+            ->getMock();
+
+        $daemon = $this->daemon('handleGuzzleException');
+        $daemon
+            ->shouldReceive('logger->error')
+                ->with('Unknown error occurred during HTTP request: $message')
+                ->once()->ordered();
+
+        $daemon->handleGuzzleException($exception);
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Daemon::guzzleClient
+     */
+    public function testGuzzleClient()
+    {
+        $this->assertInstanceOf(
+            'Guzzle\\Http\\ClientInterface',
+            $this->daemon('guzzleClient')->guzzleClient()
+        );
+    }
+
 
     /**
      * Creates a partially-mocked Daemon object
