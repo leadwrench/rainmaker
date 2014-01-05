@@ -256,4 +256,27 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
 
         $this->assertSame(3, count($mailbox));
     }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::refresh
+     */
+    public function testRefresh()
+    {
+        $innerMailbox = \Mockery::mock('Zend\\Mail\\Storage\\Imap')
+            ->shouldReceive('getCurrentFolder')
+                ->withNoArgs()
+                ->andReturn('$currentFolder')
+                ->once()->ordered()
+            ->shouldReceive('selectFolder')
+                ->with('$currentFolder')
+                ->once()->ordered()
+            ->shouldReceive('close')
+                ->withNoArgs()
+            ->getMock();
+
+        $mailbox = new FeedbackLoopFilterMailbox($innerMailbox, 'test');
+        $mailbox->refresh();
+
+        $this->assertTrue(true);
+    }
 }

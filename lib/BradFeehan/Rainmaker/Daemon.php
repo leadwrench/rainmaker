@@ -109,6 +109,9 @@ class Daemon
                 "Checking mailbox '{$mailbox->getName()}'..."
             );
 
+            // Refresh the mailbox
+            $mailbox->refresh();
+
             $this->logger()->notice(
                 "Found {$mailbox->count()} feedback loop messages"
             );

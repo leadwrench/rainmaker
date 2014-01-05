@@ -9,6 +9,7 @@ use FilterIterator;
 use Iterator;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Zend\Mail\Storage\Imap as ImapStorage;
 use Zend\Mail\Storage\Message;
 
 /**
@@ -167,5 +168,20 @@ class FeedbackLoopFilterMailbox extends FilterIterator implements MailboxInterfa
         }
 
         return $this->count;
+    }
+
+    /**
+     * Refreshes the mailbox
+     */
+    public function refresh()
+    {
+        $this->count = null;
+
+        // Presently only IMAP mailboxes can be (need to be?) refreshed
+        $innerMailbox = $this->getInnerIterator();
+        if ($innerMailbox instanceof ImapStorage) {
+            $folder = $innerMailbox->getCurrentFolder();
+            $innerMailbox->selectFolder($folder);
+        }
     }
 }
