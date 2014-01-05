@@ -3,6 +3,8 @@
 namespace BradFeehan\Rainmaker\Test;
 
 use PHPUnit_Framework_TestCase;
+use ReflectionClass;
+use ReflectionMethod;
 use ReflectionObject;
 
 /**
@@ -68,5 +70,40 @@ abstract class TestCase extends PHPUnit_Framework_TestCase
         // Actually invoke the method and return the return value
         $arguments = array_slice(func_get_args(), 2);
         return $method->invokeArgs($object, $arguments);
+    }
+
+    /**
+     * Creates a partially-mocked object
+     *
+     * Allows specifying which methods should NOT be mocked
+     *
+     * @param string $className            The class to create
+     * @param array  $passthroughMethods   Methods to passthrough
+     * @param array  $constructorArguments Array of constructor args
+     *
+     * @return Mockery\MockInterface
+     */
+    protected function mock($className, $passthroughMethods = array(), $constructorArguments = array())
+    {
+        // Determine which methods should be mocked
+        $mockedMethodNames = array();
+        $reflectionClass = new ReflectionClass($className);
+
+        $allMethods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+        foreach ($allMethods as $method) {
+            $methodName = $method->getName();
+
+            // Mock any methods that aren't in the unmocked method list
+            if (!in_array($methodName, (array) $passthroughMethods)) {
+                $mockedMethodNames[] = $methodName;
+            }
+        }
+
+        // Create the class as a partial mock
+        $methods = implode(',', $mockedMethodNames);
+        return \Mockery::mock(
+            "{$className}[{$methods}]",
+            $constructorArguments
+        );
     }
 }

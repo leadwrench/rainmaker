@@ -211,7 +211,12 @@ class ConfigurationTest extends UnitTestCase
         $mailbox1 = \Mockery::mock();
         $mailbox2 = \Mockery::mock();
 
-        $configuration = $this->mock('getMailboxes', 'createMailbox')
+        $configuration = $this->mock(
+            'BradFeehan\\Rainmaker\\Configuration',
+            array('getMailboxes', 'createMailbox')
+        );
+
+        $configuration
             ->shouldReceive('get')
                 ->with('mailboxes')
                 ->andReturn(array($mailboxConfig1, $mailboxConfig2))
@@ -248,9 +253,7 @@ class ConfigurationTest extends UnitTestCase
                     'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox',
                     array($mailbox2, '$mailbox2', $logger)
                 )
-                ->andReturn('$filterMailbox2')
-            ->getMock()
-        ;
+                ->andReturn('$filterMailbox2');
 
         $result = $configuration->getMailboxes();
 
@@ -282,7 +285,12 @@ class ConfigurationTest extends UnitTestCase
 
         $mailbox = \Mockery::mock();
 
-        $configuration = $this->mock('getMailboxes', 'createMailbox')
+        $configuration = $this->mock(
+            'BradFeehan\\Rainmaker\\Configuration',
+            array('getMailboxes', 'createMailbox')
+        );
+
+        $configuration
             ->shouldReceive('get')
                 ->with('mailboxes')
                 ->andReturn(array($mailboxConfig))
@@ -337,43 +345,5 @@ class ConfigurationTest extends UnitTestCase
         $configuration->process($data);
 
         return $configuration;
-    }
-
-    /**
-     * Creates a partially-mocked Configuration object
-     *
-     * Allows specifying which methods should NOT be mocked
-     *
-     * @param string $methodNameX A method that shouldn't be mocked
-     *
-     * @return BradFeehan\Rainmaker\Configuration
-     */
-    private function mock(/* $methodName1, $methodName2, ... */)
-    {
-        $unmockedMethodNames = func_get_args();
-
-        // Determine which methods should be mocked
-        $mockedMethodNames = array();
-        $reflectionClass = new ReflectionClass(
-            'BradFeehan\\Rainmaker\\Configuration'
-        );
-
-        $allMethods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
-        foreach ($allMethods as $method) {
-            $methodName = $method->getName();
-
-            // Mock any methods that aren't in the unmocked method list
-            if (!in_array($methodName, $unmockedMethodNames)) {
-                $mockedMethodNames[] = $methodName;
-            }
-        }
-
-        // Create the class as a partial mock
-        $methods = implode(',', $mockedMethodNames);
-        return \Mockery::mock(
-            "BradFeehan\\Rainmaker\\Configuration[{$methods}]"
-        );
-
-        return $daemon;
     }
 }

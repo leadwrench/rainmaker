@@ -576,29 +576,10 @@ class DaemonTest extends UnitTestCase
      */
     private function daemon(/* $methodName1, $methodName2, ... */)
     {
-        $unmockedMethodNames = func_get_args();
-
-        // Determine which methods should be mocked
-        $mockedMethodNames = array();
-        $reflectionClass = new ReflectionClass('BradFeehan\\Rainmaker\\Daemon');
-
-        $allMethods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
-        foreach ($allMethods as $method) {
-            $methodName = $method->getName();
-
-            // Mock any methods that aren't in the unmocked method list
-            if (!in_array($methodName, $unmockedMethodNames)) {
-                $mockedMethodNames[] = $methodName;
-            }
-        }
-
-        // Create the class as a partial mock
-        $methods = implode(',', $mockedMethodNames);
-        return \Mockery::mock(
-            "BradFeehan\\Rainmaker\\Daemon[{$methods}]",
-            array(
-                \Mockery::mock('BradFeehan\\Rainmaker\\Configuration')
-            )
+        return $this->mock(
+            'BradFeehan\\Rainmaker\\Daemon',
+            func_get_args(),
+            array(\Mockery::mock('BradFeehan\\Rainmaker\\Configuration'))
         );
     }
 }
