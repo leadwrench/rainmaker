@@ -62,7 +62,7 @@ class MonologConfigurer implements ConfigurerInterface
     public function getHandler()
     {
         // Output messages to stderr by default
-        $handler = new StreamHandler('php://stderr', Logger::INFO);
+        $handler = new StreamHandler('php://stderr', Logger::DEBUG);
 
         // Sanitize any context keys which have sensitive data in them
         $handler->pushProcessor(new SanitizationProcessor());
