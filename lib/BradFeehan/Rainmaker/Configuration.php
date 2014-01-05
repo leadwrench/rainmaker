@@ -31,6 +31,13 @@ class Configuration implements ConfigurationInterface
     private $logger;
 
     /**
+     * Configured mailboxes
+     *
+     * @var array
+     */
+    private $mailboxes;
+
+    /**
      * The processor that is used to parse configuration input
      *
      * @var Symfony\Component\Config\Definition\Processor
@@ -133,12 +140,101 @@ class Configuration implements ConfigurationInterface
     protected function createLogger()
     {
         // Instantiate configurer
-        $configClassName = $this->get('logger/configuration/class');
-        $configClass = new ReflectionClass($configClassName);
-        $configurer = $configClass->newInstance();
+        $configurerClass = $this->get('logger/configuration/class');
+        $configurer = $this->createObject($configurerClass);
 
         // Configure logger using the configurer
         return $configurer->createLogger($this->get('logger/class'));
+    }
+
+    /**
+     * Retrieves the configured mailboxes
+     *
+     * @return array
+     */
+    public function getMailboxes()
+    {
+        if ($this->mailboxes === null) {
+            $this->mailboxes = array();
+
+            foreach ($this->get('mailboxes') as $config) {
+                $this->mailboxes[] = $this->createMailbox($config);
+            }
+        }
+
+        return $this->mailboxes;
+    }
+
+    /**
+     * Creates a FeedbackLoopFilterMailbox as defined in $configuration
+     *
+     * @param array $configuration The mailbox configuration node
+     *
+     * @return BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox
+     */
+    protected function createMailbox($configuration)
+    {
+        $this->logger()->debug('Daemon::createMailbox()', $configuration);
+
+        $protocol = $configuration['protocol'];
+        unset($configuration['protocol']);
+
+        $configuration = array_merge(array(
+            'name' => '(untitled mailbox)',
+            'host' => '',
+            'port' => null,
+            'ssl' => false,
+        ), $configuration);
+
+        $this->logger()->info(
+            "Connecting to mailbox '{$configuration['name']}'..."
+        );
+
+        switch ($protocol) {
+            case 'imap':
+                $mailbox = $this->createObject(
+                    'Zend\\Mail\\Storage\\Imap',
+                    array($configuration)
+                );
+                break;
+
+            case 'pop':
+                $mailbox = $this->createObject(
+                    'Zend\\Mail\\Storage\\Pop',
+                    array(
+                        $configuration['host'],
+                        $configuration['port'],
+                        $configuration['ssl'],
+                    )
+                );
+                break;
+
+            default:
+                throw new InvalidArgumentException(
+                    "Invalid mailbox protocol '$protocol'"
+                );
+        }
+
+        return $this->createObject(
+            'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox',
+            array($mailbox, $configuration['name'])
+        );
+    }
+
+    /**
+     * Creates a new object using Reflection
+     *
+     * @param string $className            The class to instantiate
+     * @param array  $constructorArguments Arguments for constructor
+     *                                     (optional, defaults to
+     *                                     array())
+     *
+     * @return mixed
+     */
+    public function createObject($className, $constructorArguments = array())
+    {
+        $reflectionClass = new ReflectionClass($className);
+        return $reflectionClass->newInstanceArgs($constructorArguments);
     }
 
     /**
