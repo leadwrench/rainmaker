@@ -7,7 +7,7 @@ written in PHP.
 This project is a port of a Python feedback loop processor by
 [Vimmaniac] PLC.
 
-Currently a work-in-progress.
+Latest release: v0.1.0.
 
 [feedback loop (FBL)]: <https://en.wikipedia.org/wiki/Feedback_loop_(email)>
 [Interspire Email Marketer]: <https://www.interspire.com/emailmarketer/>
@@ -83,7 +83,7 @@ piece of PHP software, using Composer.
                 }
             ],
             "require": {
-                "bradfeehan/rainmaker": "dev-master"
+                "bradfeehan/rainmaker": "~0.1.0"
             }
         }
 
