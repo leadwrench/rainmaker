@@ -217,7 +217,7 @@ class Configuration implements ConfigurationInterface
 
         return $this->createObject(
             'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox',
-            array($mailbox, $configuration['name'])
+            array($mailbox, $configuration['name'], $this->logger())
         );
     }
 

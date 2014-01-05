@@ -7,6 +7,8 @@ use BradFeehan\Rainmaker\MailboxInterface;
 use Countable;
 use FilterIterator;
 use Iterator;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Zend\Mail\Storage\Message;
 
 /**
@@ -27,6 +29,13 @@ class FeedbackLoopFilterMailbox extends FilterIterator implements MailboxInterfa
     private $count;
 
     /**
+     * The logger associated with this mailbox
+     *
+     * @var Psr\Log\LoggerInterface
+     */
+    private $logger;
+
+    /**
      * The name of this mailbox
      *
      * @var string
@@ -40,9 +49,10 @@ class FeedbackLoopFilterMailbox extends FilterIterator implements MailboxInterfa
      * @param Iterator $innerIterator The mailbox to filter
      * @param string   $name          The name of this mailbox
      */
-    public function __construct(Iterator $innerIterator, $name)
+    public function __construct(Iterator $innerIterator, $name, LoggerInterface $logger = null)
     {
         $this->name = $name;
+        $this->logger = $logger ?: new NullLogger();
         parent::__construct($innerIterator);
     }
 
@@ -63,18 +73,62 @@ class FeedbackLoopFilterMailbox extends FilterIterator implements MailboxInterfa
      */
     public function accept()
     {
+        $this->logger->debug('FeedbackLoopFilterMailbox::accept()');
+
         // If it's not a message, it's definitely not a feedback report
         if (!($this->original() instanceof Message)) {
+            $this->logger->warning(
+                'Ignoring non-Message returned from mailbox',
+                array('className' => get_class($this->original()))
+            );
             return false;
         }
 
         // Retrieve the Content-Type of the current message
-        $contentType = $this->original()->getHeader('Content-Type');
+        try {
+            $contentType = $this->original()->getHeader('Content-Type');
+            $type = $contentType->getType();
+        } catch (\Zend\Mail\Storage\Exception\InvalidArgumentException $e) {
+            $this->logger->debug(
+                'Ignoring message with missing Content-Type header',
+                array('className' => get_class($this->original()))
+            );
 
-        return (
-            $contentType->getType() == 'multipart/report' &&
-            $contentType->getParameter('report-type') == 'feedback-report'
-        );
+            return false;
+        }
+
+        // Must have "multipart/report" content type
+        if ($type !== 'multipart/report') {
+            $this->logger->debug(
+                "The message's Content-Type is not 'multipart/report'",
+                array('Content-Type' => $contentType->toString())
+            );
+            return false;
+        }
+
+        try {
+            $reportType = $contentType->getParameter('report-type');
+        } catch (\Zend\Mail\Storage\Exception\InvalidArgumentException $e) {
+            $this->logger->debug(
+                'Ignoring message with missing Report-Type',
+                array('Content-Type' => $contentType->toString())
+            );
+
+            return false;
+        }
+
+        // Must have "report-type" set to "feedback-report"
+        if ($reportType !== 'feedback-report') {
+            $this->logger->debug(
+                "The report's Report-Type is not 'feedback-report'",
+                array(
+                    'Report-Type' => $contentType->getParameter('report-type'),
+                )
+            );
+            return false;
+        }
+
+        return true;
     }
 
     /**

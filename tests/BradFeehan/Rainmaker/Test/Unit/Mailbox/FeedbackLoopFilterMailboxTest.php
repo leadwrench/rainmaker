@@ -49,6 +49,7 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
             ->shouldReceive('getType')
                 ->andReturn('multipart/report')
             ->shouldReceive('getParameter')
+                ->with('report-type')
                 ->andReturn('feedback-report')
             ->getMock();
 
@@ -86,11 +87,91 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
     /**
      * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::accept
      */
-    public function testAcceptWithNonFeedbackReport()
+    public function testAcceptWithWrongContentType()
     {
         $contentType = \Mockery::mock('Zend\\Mail\\Header\\ContentType')
             ->shouldReceive('getType')
                 ->andReturn('multipart/mixed')
+            ->shouldReceive('toString')
+                ->andReturn('$contentType')
+            ->getMock();
+
+        $original = \Mockery::mock('Zend\\Mail\\Storage\\Message')
+            ->shouldReceive('getHeader')
+                ->with('Content-Type')
+                ->andReturn($contentType)
+            ->getMock();
+
+        $mailbox = \Mockery::mock(
+            'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[original]',
+            array(\Mockery::mock('Iterator'), 'test') // needs constructor arg
+        );
+        $mailbox->shouldReceive('original')->andReturn($original);
+
+        $this->assertFalse($mailbox->accept());
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::accept
+     */
+    public function testAcceptWithNoContentType()
+    {
+        $original = \Mockery::mock('Zend\\Mail\\Storage\\Message')
+            ->shouldReceive('getHeader')
+                ->with('Content-Type')
+                ->andThrow('Zend\\Mail\\Storage\\Exception\\InvalidArgumentException')
+            ->getMock();
+
+        $mailbox = \Mockery::mock(
+            'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[original]',
+            array(\Mockery::mock('Iterator'), 'test') // needs constructor arg
+        );
+        $mailbox->shouldReceive('original')->andReturn($original);
+
+        $this->assertFalse($mailbox->accept());
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::accept
+     */
+    public function testAcceptWithWrongReportType()
+    {
+        $contentType = \Mockery::mock('Zend\\Mail\\Header\\ContentType')
+            ->shouldReceive('getType')
+                ->andReturn('multipart/report')
+            ->shouldReceive('getParameter')
+                ->with('report-type')
+                ->andReturn('not-a-feedback-report')
+            ->getMock();
+
+        $original = \Mockery::mock('Zend\\Mail\\Storage\\Message')
+            ->shouldReceive('getHeader')
+                ->with('Content-Type')
+                ->andReturn($contentType)
+            ->getMock();
+
+        $mailbox = \Mockery::mock(
+            'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox[original]',
+            array(\Mockery::mock('Iterator'), 'test') // needs constructor arg
+        );
+        $mailbox->shouldReceive('original')->andReturn($original);
+
+        $this->assertFalse($mailbox->accept());
+    }
+
+    /**
+     * @covers BradFeehan\Rainmaker\Mailbox\FeedbackLoopFilterMailbox::accept
+     */
+    public function testAcceptWithNoReportType()
+    {
+        $contentType = \Mockery::mock('Zend\\Mail\\Header\\ContentType')
+            ->shouldReceive('getType')
+                ->andReturn('multipart/report')
+            ->shouldReceive('getParameter')
+                ->with('report-type')
+                ->andThrow('Zend\\Mail\\Storage\\Exception\\InvalidArgumentException')
+            ->shouldReceive('toString')
+                ->andReturn('$contentType')
             ->getMock();
 
         $original = \Mockery::mock('Zend\\Mail\\Storage\\Message')
@@ -153,6 +234,7 @@ class FeedbackLoopFilterMailboxTest extends UnitTestCase
             ->shouldReceive('getType')
                 ->andReturn('multipart/report')
             ->shouldReceive('getParameter')
+                ->with('report-type')
                 ->andReturn('feedback-report')
             ->getMock();
 

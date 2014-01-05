@@ -240,13 +240,13 @@ class ConfigurationTest extends UnitTestCase
             ->shouldReceive('createObject')
                 ->with(
                     'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox',
-                    array($mailbox1, '$mailbox1')
+                    array($mailbox1, '$mailbox1', $logger)
                 )
                 ->andReturn('$filterMailbox1')
             ->shouldReceive('createObject')
                 ->with(
                     'BradFeehan\\Rainmaker\\Mailbox\\FeedbackLoopFilterMailbox',
-                    array($mailbox2, '$mailbox2')
+                    array($mailbox2, '$mailbox2', $logger)
                 )
                 ->andReturn('$filterMailbox2')
             ->getMock()
