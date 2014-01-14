@@ -27,7 +27,7 @@
         "zendframework/zend-mail": "~2.2.5"
     },
     "require-dev": {
-        "mockery/mockery": "dev-master",
+        "mockery/mockery": "dev-master#121389af4cebe21c529a21b9d341f3fe198326e8",
         "phpunit/phpunit": "~3.7.0",
         "squizlabs/php_codesniffer": "~1.5.1"
     }
