@@ -7,12 +7,14 @@ written in PHP.
 This project is a port of a Python feedback loop processor by
 [Vimmaniac] PLC.
 
+This project was originally funded by [Lead Wrench], LLC 
+
 Latest release: v0.1.1.
 
 [feedback loop (FBL)]: <https://en.wikipedia.org/wiki/Feedback_loop_(email)>
 [Interspire Email Marketer]: <https://www.interspire.com/emailmarketer/>
 [Vimmaniac]: <http://vimmaniac.com/feebackloop-processor-for-iem-6/>
-
+[Lead Wrench]: <http://www.leadwrench.com/>
 
 
 
